@@ -1,28 +1,25 @@
-# [Click me for the demo](https://agentic-cloudflare-static-site-template.deltadelta.workers.dev/)
+# Earth
 
-# What is this?
+A home screen of Google Earth places for Vera. It is a static world map with pins. Tap a pin to see big cards for the places in that region. Tap a card to open the place in the Google Earth app.
 
-This repo is a template that you can give to an AI agent so that you can quickly deploy static websites using a NextJS and Cloudflare Worker stack.
+There is no text to read in the UI on purpose. Vera cannot read sentences. See `AGENTS.md` for the design rules.
 
-Your agent should be able to clone this repo, or use it to instantiate a new Github project for you, then guide you on how to get it deployed using Cloudflare.
+## Run
 
-# Rationale
+```
+npm install
+npm run dev      # local dev server
+npm run build    # static export to out/
+npm run lint
+npm run preview  # build, then serve with wrangler dev
+```
 
-This project is a spin-off from an internal project I built at the last company I was working at. We needed a super simple and cheap way for non-engineering staff to be able to experiment and deploy vibe-coded applications safely, and with minimal overhead to the engineering team.
+The site is a Next.js static export served by a Cloudflare Worker (`wrangler.jsonc`).
 
-As a devops engineer, all I need to do is:
-1. Give this template to the vibe-coder
-2. Create a Cloudflare application for this repo and hook it up to a domain/Cloudflare Access
+## Where the data lives
 
-# Limitations
+All pins and places are in `data/places.json`. Each region has an `id`, a fixed `lat` and `lng` for its pin, and a list of `places`. Each place has a `name`, a Google Earth `url`, and a `thumbnail` (a path such as `/thumbs/sydney.jpg` for a file in `public/thumbs/`, or `null`).
 
-This repo is meant to be an exceptionally lean implementation of this type of workflow, so the only sites you can deploy here must be static. For example, with the NextJS directive `output: "export"`.
+## Map
 
-# How to use
-
-> You can send this repo to your agent. If necessary, just point it to the AGENTS.md file.
-
-1. Set up the connection between Github and Cloudflare. This can be done by going to the Cloudflare Web console > Workers > Create application > Github. Then follow the prompts.
-2. Create a new Github repo by using this as a template.
-3. Go to the Cloudflare Web console > Workers > Create application > Github, and then pick your new repo.
-4. Follow the prompts, then enable the workers domain and your application will be live at `.workers.dev`!
+`public/world.svg` is a flat world map made from Natural Earth data (public domain). It uses an equirectangular projection from longitude -180 to 180 and latitude 84 to -58. The bounds and the pin projection are in `app/map.ts`. If you change one, change the other.

@@ -1,19 +1,14 @@
-# NextJS + Cloudflare Workers template
+# Earth
 
-> A minimal template for building static NextJS sites (App Router, TypeScript, `output: "export"`) that are deployed automatically by Cloudflare Workers on every push to `main`.
+> A simple world map for Vera, a stroke survivor who uses one hand and cannot read sentences. Each pin on the map opens big cards for saved places in that region. Each card opens the place in the Google Earth app.
 
-This site is built from a template meant to be used by AI agents. It has no server, database, or secrets: the build produces plain HTML, CSS, and JavaScript that a Cloudflare Worker serves as static assets. Apps that need server code, a database, or third-party services are not supported by this template.
-
-## Docs
-
-- [AGENTS.md](https://raw.githubusercontent.com/delta1513/agentic-cloudflare-static-site-template/main/AGENTS.md): Instructions for agents - stack, commands, what the static export can and cannot do, pre-push checks, and Cloudflare setup
-- [Home page](/): Overview of the template, its rationale, limitations, and setup steps
+The site is a static Next.js page served by a Cloudflare Worker. It has one page: a world map with pins. Tapping a pin opens an overlay with a card for each place. A card is a plain link to a Google Earth URL, opened in the same tab. The UI has no sentences or labels on purpose, because Vera cannot read them. The main device is an iPad. The site address on workers.dev is not known yet.
 
 ## Source
 
-- [GitHub repository](https://github.com/delta1513/agentic-cloudflare-static-site-template): Source code for the template
-- [wrangler.jsonc](https://raw.githubusercontent.com/delta1513/agentic-cloudflare-static-site-template/main/wrangler.jsonc): Cloudflare Worker config (name, build command, asset directory)
-- [next.config.ts](https://raw.githubusercontent.com/delta1513/agentic-cloudflare-static-site-template/main/next.config.ts): Next.js config that enables the static export
+- [GitHub repository](https://github.com/delta1513/veras-google-earth-tours): Source code for the site
+- [data/places.json](https://raw.githubusercontent.com/delta1513/veras-google-earth-tours/main/data/places.json): All regions, pin positions, places, Google Earth links, and thumbnails
+- [AGENTS.md](https://raw.githubusercontent.com/delta1513/veras-google-earth-tours/main/AGENTS.md): Instructions for agents, including the design rules for Vera
 
 ## Optional
 

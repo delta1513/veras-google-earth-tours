@@ -1,9 +1,47 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { MAP_ASPECT, MAP_HEIGHT, MAP_WIDTH, project } from "./map";
 import type { Region } from "./places";
+
+// 4-point twinkle star, 24x24 box.
+const STAR = "M12 1 C12.8 8 16 11.2 23 12 C16 12.8 12.8 16 12 23 C11.2 16 8 12.8 1 12 C8 11.2 11.2 8 12 1 Z";
+
+// Stars around the pin head (head centre is 14.5/40 of the way down the icon box).
+const SPARKS = [
+  { x: -27, y: 0, s: 18, d: 0 },
+  { x: 27, y: -6, s: 15, d: 0.9 },
+  { x: 2, y: -22, s: 20, d: 1.7 },
+  { x: -20, y: 30, s: 13, d: 0.5 },
+  { x: 24, y: 28, s: 14, d: 1.3 },
+];
+
+function Sparkles() {
+  return (
+    <span className="sparkles" aria-hidden="true">
+      <span className="halo" />
+      {SPARKS.map((k, i) => (
+        <svg
+          key={i}
+          className="spark"
+          viewBox="0 0 24 24"
+          style={
+            {
+              left: `calc(50% + ${k.x}px)`,
+              top: `${k.y + 4}px`,
+              width: k.s,
+              height: k.s,
+              "--sd": `${k.d}s`,
+            } as React.CSSProperties
+          }
+        >
+          <path d={STAR} />
+        </svg>
+      ))}
+    </span>
+  );
+}
 
 function PinIcon() {
   // Pin tip is at the bottom centre of this 40x40 box.
@@ -95,9 +133,56 @@ function Clouds() {
   );
 }
 
+const SEEN_KEY = "vera-seen-v1";
+const mem: { seen: string | null } = { seen: null }; // fallback when storage is unavailable
+const seenListeners = new Set<() => void>();
+function subscribeSeen(cb: () => void) {
+  seenListeners.add(cb);
+  return () => {
+    seenListeners.delete(cb);
+  };
+}
+function writeSeen(value: string) {
+  mem.seen = value;
+  try {
+    window.localStorage.setItem(SEEN_KEY, value);
+  } catch {
+    /* ignore */
+  }
+  seenListeners.forEach((l) => l());
+}
+function readSeen(): string {
+  if (mem.seen !== null) return mem.seen;
+  try {
+    return window.localStorage.getItem(SEEN_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
 export default function WorldMap({ regions }: { regions: Region[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const open = regions.find((r) => r.id === openId) ?? null;
+  // URLs Vera has already seen (raw JSON string; null until mounted, so no hydration mismatch).
+  const raw = useSyncExternalStore(subscribeSeen, readSeen, () => null);
+  const loaded = raw !== null;
+  const seen = useMemo(() => {
+    try {
+      const arr: unknown = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(arr)) return new Set(arr.filter((u): u is string => typeof u === "string"));
+    } catch {
+      /* ignore */
+    }
+    return new Set<string>();
+  }, [raw]);
+
+  const openRegion = (region: Region) => {
+    setOpenId(region.id);
+    if (region.places.every((p) => seen.has(p.url))) return;
+    const next = new Set(seen);
+    region.places.forEach((p) => next.add(p.url));
+    writeSeen(JSON.stringify([...next]));
+  };
 
   useEffect(() => {
     if (!openId) return;
@@ -128,8 +213,9 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
         />
         <Clouds />
         <div className="map-frame" aria-hidden="true" />
-        {regions.map((region) => {
+        {regions.map((region, i) => {
           const { xPct, yPct } = project(region.lat, region.lng);
+          const isNew = region.places.some((p) => !seen.has(p.url));
           return (
             <button
               key={region.id}
@@ -137,11 +223,30 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
               className="pin"
               data-testid="pin"
               data-region={region.id}
+              data-new={isNew ? "true" : "false"}
               aria-label={region.id}
-              style={{ left: `${xPct}%`, top: `${yPct}%` }}
-              onClick={() => setOpenId(region.id)}
+              style={
+                {
+                  left: `${xPct}%`,
+                  top: `${yPct}%`,
+                  "--i": i,
+                  "--bd": `${((i * 37) % 17) / 6}s`,
+                } as React.CSSProperties
+              }
+              onClick={() => openRegion(region)}
             >
-              <PinIcon />
+              <span className="pin-ground" aria-hidden="true">
+                <span className="pin-shadow" />
+                <span className="pin-ripple" />
+              </span>
+              <span className="pin-drop" aria-hidden="true">
+                <span className="pin-bob">
+                  <span className={`sparkle-wrap${loaded && isNew ? " on" : ""}`}>
+                    <Sparkles />
+                  </span>
+                  <PinIcon />
+                </span>
+              </span>
             </button>
           );
         })}

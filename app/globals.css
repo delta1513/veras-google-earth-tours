@@ -66,6 +66,8 @@ a {
   border: 0;
   background: transparent;
   cursor: pointer;
+  /* The pin grows when pressed, so it needs no square highlight. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pin-icon {

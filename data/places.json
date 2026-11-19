@@ -1,0 +1,45 @@
+{
+  "regions": [
+    {
+      "id": "australia-east",
+      "lat": -33.9,
+      "lng": 151.2,
+      "places": [
+        {
+          "name": "Sydney",
+          "url": "https://earth.google.com/web/@-33.8568,151.2153,20a,600d,35y,0h,60t,0r",
+          "thumbnail": null
+        }
+      ]
+    },
+    {
+      "id": "canada-west",
+      "lat": 48.6,
+      "lng": -123.4,
+      "places": [
+        {
+          "name": "Butterflies",
+          "url": "https://earth.google.com/web/@48.5703,-123.4577,20a,600d,35y,0h,60t,0r",
+          "thumbnail": null
+        }
+      ]
+    },
+    {
+      "id": "europe-south",
+      "lat": 40.5,
+      "lng": 19.0,
+      "places": [
+        {
+          "name": "Skopje",
+          "url": "https://earth.google.com/web/@41.9981,21.4254,240a,3000d,35y,0h,0t,0r",
+          "thumbnail": null
+        },
+        {
+          "name": "Calabria",
+          "url": "https://earth.google.com/web/@39.0,16.4,0a,250000d,35y,0h,0t,0r",
+          "thumbnail": null
+        }
+      ]
+    }
+  ]
+}

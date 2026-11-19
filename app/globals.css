@@ -11,7 +11,7 @@ body {
   margin: 0;
   height: 100dvh;
   overflow: hidden;
-  background: #9bd4f2;
+  background: #3f93c4;
   font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   touch-action: manipulation;
   -webkit-user-select: none;
@@ -36,7 +36,12 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #9bd4f2;
+  overflow: hidden;
+  /* Letterbox space continues the sea: deep water with a faint wave texture. */
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(143, 211, 238, 0.6), rgba(30, 100, 160, 0.35) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='48'%3E%3Cpath d='M10 14q12-10 25 0t25 0M70 38q12-10 25 0t25 0' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' opacity='.12'/%3E%3C/svg%3E"),
+    #4aa3d2;
 }
 
 .map {
@@ -44,6 +49,71 @@ a {
   /* As large as possible, keeping the aspect ratio. */
   width: min(100vw, calc(100dvh * var(--map-aspect)));
   aspect-ratio: var(--map-aspect);
+}
+
+/* Ornamental atlas frame + soft vignette. Purely decorative. */
+.map-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 clamp(3px, 0.5vmin, 5px) #8a5a2b,
+    inset 0 0 0 clamp(6px, 1vmin, 10px) #f1e0b4,
+    inset 0 0 0 clamp(8px, 1.3vmin, 13px) #8a5a2b,
+    inset 0 0 0 clamp(10px, 1.7vmin, 16px) #f1e0b4,
+    inset 0 0 60px 20px rgba(20, 70, 110, 0.35);
+}
+
+.clouds {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: inline-size;
+}
+
+.cloud {
+  position: absolute;
+  left: 0;
+  height: auto;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 6px 5px rgba(20, 70, 110, 0.22));
+  animation-name: drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  transform: translate3d(-25vw, 0, 0);
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-25vw, 0, 0);
+  }
+  to {
+    transform: translate3d(105vw, 0, 0);
+  }
+}
+
+@supports (width: 1cqw) {
+  @keyframes drift {
+    from {
+      transform: translate3d(-25cqw, 0, 0);
+    }
+    to {
+      transform: translate3d(105cqw, 0, 0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud {
+    animation: none;
+    transform: translate3d(30cqw, 0, 0);
+  }
+  .cloud:nth-child(2) { transform: translate3d(70cqw, 0, 0); }
+  .cloud:nth-child(3) { transform: translate3d(8cqw, 0, 0); }
+  .cloud:nth-child(4) { transform: translate3d(52cqw, 0, 0); }
+  .cloud:nth-child(5) { transform: translate3d(86cqw, 0, 0); }
 }
 
 .map-img {

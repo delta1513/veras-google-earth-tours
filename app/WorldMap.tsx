@@ -36,6 +36,65 @@ function ArrowIcon() {
   );
 }
 
+// Soft illustrated cloud: a flat-bottomed puffy shape with a shaded underside.
+function CloudDefs() {
+  return (
+    <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="cloud-shape" viewBox="0 0 240 110">
+          <path
+            d="M44 88 C16 88 8 62 30 54 C28 36 52 28 66 40 C72 14 112 8 128 30 C144 16 178 24 180 48 C208 44 228 66 210 84 C206 88 200 88 196 88 Z"
+            fill="#ffffff"
+          />
+          <path
+            d="M44 88 C16 88 8 62 30 54 C28 36 52 28 66 40 C72 14 112 8 128 30 C144 16 178 24 180 48 C208 44 228 66 210 84 C206 88 200 88 196 88 Z"
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="2"
+          />
+          <path
+            d="M34 78 C70 90 150 92 214 78 C212 86 204 88 196 88 L44 88 C36 88 30 84 34 78 Z"
+            fill="#cfe3f3"
+          />
+        </symbol>
+      </defs>
+    </svg>
+  );
+}
+
+const CLOUDS = [
+  { top: 6, w: 17, dur: 120, delay: -20, op: 0.9 },
+  { top: 26, w: 12, dur: 90, delay: -62, op: 0.8 },
+  { top: 48, w: 20, dur: 140, delay: -95, op: 0.85 },
+  { top: 66, w: 13, dur: 100, delay: -35, op: 0.8 },
+  { top: 82, w: 16, dur: 130, delay: -8, op: 0.85 },
+];
+
+function Clouds() {
+  return (
+    <div className="clouds" aria-hidden="true">
+      {CLOUDS.map((c, i) => (
+        <svg
+          key={i}
+          className="cloud"
+          viewBox="0 0 240 110"
+          style={
+            {
+              top: `${c.top}%`,
+              width: `${c.w}%`,
+              opacity: c.op,
+              animationDuration: `${c.dur}s`,
+              animationDelay: `${c.delay}s`,
+            } as React.CSSProperties
+          }
+        >
+          <use href="#cloud-shape" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
 export default function WorldMap({ regions }: { regions: Region[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const open = regions.find((r) => r.id === openId) ?? null;
@@ -51,6 +110,7 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
 
   return (
     <main className="stage">
+      <CloudDefs />
       <div
         className="map"
         data-testid="map"
@@ -66,6 +126,8 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
           unoptimized
           draggable={false}
         />
+        <Clouds />
+        <div className="map-frame" aria-hidden="true" />
         {regions.map((region) => {
           const { xPct, yPct } = project(region.lat, region.lng);
           return (

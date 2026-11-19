@@ -8,6 +8,202 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+# About this project
+
+This site is a map of the world for Vera. She uses it on an iPad in Safari.
+
+It is a static page. The page shows a world map with red pins. Vera taps a pin. A sheet with big cards opens on top of the map. One card shows one place in that region. A card has a thumbnail, a short name, and a big green arrow. Vera taps a card. The card is a link to Google Earth. The Google Earth app is installed on the iPad. It opens the link.
+
+Vera cannot use Google Maps. Her family shows her places in the world with this site.
+
+A scheduled Claude routine adds one new place from time to time. The routine pushes straight to `main`. The skill `add-earth-link` (in `.claude/skills/add-earth-link/SKILL.md`) tells the routine what to do. Use that skill when you add a place.
+
+Cloudflare serves the site as the Worker `veras-google-earth-tours`. The address is https://veras-google-earth-tours.deltadelta.workers.dev/. The home screen at vera.deltadelta.dev has an icon that links to this address.
+
+
+## Who Vera is
+
+Vera is a stroke survivor. She was born in the 1960s. She did not grow up with technology, so her knowledge of it is limited. She is the main user of every system in this project.
+
+Vera has these limits:
+
+- She cannot use her right hand. She uses one hand only.
+- She cannot read written text, except simple single words. She can connect one word to one object or one action.
+- She cannot understand a sentence.
+- She cannot speak, except a few simple, practiced words and sounds.
+- She cannot say some letters of the alphabet. She can say most of them.
+
+Vera depends on visual cues. She uses them to remember a flow in a user interface. She also uses them to understand a situation and to connect a word to an object or action.
+
+Vera can do these things:
+
+- She can copy text with the QWERTY keyboard on her phone, if the text is on the screen. If the screen shows "Banana", she can type "Banana".
+- She can follow a complex flow after someone teaches her. For example, she learned to touch and hold text to start text-to-speech on her Apple phone.
+- She knows some apps after instruction: messages, phone, contacts, Facebook, and WhatsApp.
+
+## Rules for every change
+
+Vera cannot understand text. Therefore, think about her limits before you add or change any feature. For example, do not add an alert pop-up, because she cannot read it. Use buttons with images or emojis that show the action.
+
+You must obey these rules:
+
+- Do not add sentences, instructions, labels, or error messages to the UI.
+- Do not use `alert`, `confirm`, `prompt`, or a text dialog.
+- Show each action with an emoji, an icon, a picture, or a color.
+- Keep each flow short, and keep it the same every time. Vera learns a flow by memory.
+- Make each touch target large.
+- Make sure that one hand can reach every control on a phone.
+- Do not require speech, and do not require a gesture that needs two hands.
+- Do not require a complex gesture, such as a pinch or a drag, unless Vera can learn it.
+- If a word appears, it must be a single simple word that has a picture next to it.
+- Show what happened with a clear visual result, for example a trophy or a sad face.
+- Do not remove or rename a control that Vera already knows, unless there is a strong reason.
+- Do not assume that Vera knows a common web pattern. Menus, swipes, and hidden controls can confuse her.
+- If a new feature needs text to work, change the design. Do not add the text.
+
+Before you finish, ask this question: "Can Vera use this feature with one hand, without reading?" If the answer is no, change the feature.
+
+
+## How this site works
+
+All content is in `data/places.json`. A person or an AI can edit it. The app reads it at build time (`app/places.ts`). No app code changes when you add a place.
+
+### The data file
+
+The file has a list of regions. A region is one pin on the map. A region has a list of places. A place is one card.
+
+```json
+{
+  "regions": [
+    {
+      "id": "europe-south",
+      "lat": 40.5,
+      "lng": 19.0,
+      "places": [
+        {
+          "name": "Skopje",
+          "url": "https://earth.google.com/web/@41.9961,21.4317,240a,15000d,35y,0h,0t,0r",
+          "thumbnail": "/thumbs/skopje.jpg"
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Rule |
+| --- | --- |
+| `id` | Unique. Kebab-case. Form: `<country-or-area>-<direction-or-island>`. Examples: `australia-east`, `australia-west`, `australia-north`, `australia-south`, `australia-tasmania`. Tasmania gets its own name because it is an island. |
+| `lat`, `lng` | The fixed pin position. Choose it by hand. Put it on the map, on or near land, roughly in the middle of where the places of the region are. Latitude is from -58 to 84. Longitude is from -180 to 180. |
+| `places` | A list with at least one place. |
+| `name` | One simple word that Vera can connect to the picture. Two words at most. Unique in the region. |
+| `url` | A Google Earth link. See "Google Earth links" below. |
+| `thumbnail` | `/thumbs/<slug>.jpg`, or `null`. With `null` the card shows a grey placeholder. |
+
+### New region or existing region
+
+Add the place to an existing region in these cases:
+
+- The place is within about 500 to 800 km of the pin of that region.
+- The place is in the same country, area, or island group.
+
+Make a new region in these cases:
+
+- The place is far from every pin.
+- The place is separate in meaning. For example: an island, a different country, a different continent.
+
+The data tests enforce one rule. Two pins must be at least 8 degrees apart. The distance is Euclidean: `sqrt((lat1-lat2)^2 + (lng1-lng2)^2)`. If a new region would be closer than that to a pin, add the place to the nearby region instead.
+
+A pin is 72 px wide. On an iPad in portrait, 8 degrees are only about 18 px. Pins that are close are hard to tap. Prefer more space when you can.
+
+Keep it simple. Do not add clustering. Do not add a dynamic layout. Each pin has a fixed position.
+
+### Google Earth links
+
+Use this format:
+
+```
+https://earth.google.com/web/@<lat>,<lng>,<a>a,<d>d,35y,0h,<t>t,0r
+```
+
+| Part | Meaning |
+| --- | --- |
+| `lat`, `lng` | The place. Use 4 decimals. |
+| `a` | Ground elevation in metres. Round it to 10. Use 0 for a regional view. |
+| `d` | Camera distance in metres. Use about 1.6 times the width of the subject. A building of 190 m: 300 to 600. A city of 10 km: 15000. A region of 250 km: 500000. |
+| `t` | Camera tilt. Use 60 for a landmark. Use 0 for a city view or a region view. |
+| `35y`, `0h`, `0r` | Fixed. Do not change them. |
+
+This format is inferred. Google has no official documentation for it. Nobody could check the framing by eye. A link may frame a place a little too near or too far. This is acceptable.
+
+To get the elevation, run this command:
+
+```
+curl -sS "https://api.opentopodata.org/v1/srtm30m?locations=LAT,LNG"
+```
+
+The number after `"elevation"` is the ground elevation in metres.
+
+### Thumbnails
+
+- A thumbnail is a file in `public/thumbs/`. The name is `<slug>.jpg`.
+- It is exactly 256 x 256 px. It is a progressive JPEG.
+- Crop it from the centre. If the subject is not in the centre, use a better crop.
+- Remove the metadata. Use quality about 70. The target size is 25 KB or less. The tests allow 40 KB.
+- Always crop and compress with a standard tool. Never commit a raw download.
+- With ImageMagick:
+
+```
+convert in.jpg -auto-orient -resize 256x256^ -gravity center -extent 256x256 -strip -interlace Plane -quality 70 public/thumbs/<slug>.jpg
+```
+
+- If ImageMagick is not installed, use `scripts/make_thumb.py` or Pillow. The skill `add-earth-link` has the commands.
+- Use only free licences: CC BY, CC BY-SA, CC0, or public domain. Credit every image in `public/thumbs/CREDITS.md`.
+- Always look at the final image. It must be clear and easy to recognise.
+
+### The map
+
+- `public/world.svg` is a flat world map. It uses the equirectangular projection. The latitude is from 84 to -58. The longitude is from -180 to 180. The size is 3600 x 1420 (10 units for each degree).
+- `app/map.ts` has the same bounds and the function `project()`. `project()` turns lat and lng into percent. If you change the SVG bounds, change `app/map.ts` too.
+- The script `scripts/gen-world-svg.mjs` makes a new SVG from Natural Earth data. The packages `world-atlas`, `topojson-client`, `topojson-simplify`, and `d3-geo` must be installed outside the project. Do not add them to `package.json`. Run these commands:
+
+```
+mkdir -p /tmp/worldgen && cp scripts/gen-world-svg.mjs /tmp/worldgen/ && cd /tmp/worldgen
+npm init -y && npm install world-atlas topojson-client topojson-simplify d3-geo
+node gen-world-svg.mjs 50m 0.15    # writes world-50m-0.15.svg
+```
+
+- The arguments are the data resolution (`50m` or `110m`) and the simplify quantile. The script writes the file into the folder where you run it. The script gives a different sea colour than the committed map (`#8fd0f0` against `#9bd4f2`). Check the result by eye before you replace `public/world.svg`. The sea colour must match the page background in `app/globals.css`.
+- Do not regenerate the map unless it is necessary.
+
+### UI rules for this app
+
+These rules come from the rules above. Do not break them.
+
+- The UI has no text except the place names on the cards.
+- A pin has a touch area of at least 64 px (it is 72 px now).
+- A card is at least 96 px high. A card is one `<a>` element. It opens in the same tab. Do not add `target`.
+- The close button is big and red. It is at the bottom-left, so the left hand can reach it.
+- Do not add dialogs, alerts, or hidden controls.
+- Keep the test hooks. These are the `data-testid` values: `map`, `pin` (with `data-region`), `overlay`, `backdrop`, `sheet`, `card`, `placeholder`, `close`.
+
+## Testing
+
+| Command | Result |
+| --- | --- |
+| `npm run test:e2e` | Builds the site. Then runs Playwright with Chromium at iPad landscape (1180 x 820) and iPad portrait (820 x 1180). Also runs the data tests. |
+| `npx playwright test --project=data --trace off` | Runs only the data tests. It needs no browser. It does not build the site. |
+
+- The data-only run still starts the test web server. The server waits for `out/index.html`. If the folder `out/` does not exist, run `mkdir -p out && touch out/index.html` first. Git ignores `out/`. `npm run build` replaces it.
+- If the browser is missing, run `npx playwright install chromium`.
+- The tests are data-driven. They read `data/places.json`. A new place needs no test change.
+- Always pass `--trace off` to Playwright. The `test:e2e` script does this.
+- If a test fails after you add a place, fix the data. Do not change the tests.
+
+## Git
+
+This project pushes directly to `main`. The rules in section 10 of the template guide below apply. Never force-push. If a push is rejected, run `git pull --no-rebase origin main` and push again.
+
 # Agent guide for this template
 
 This file is written in Simplified Technical English. Each sentence has one meaning. Read all of it before you change any file.
@@ -49,6 +245,12 @@ The Next.js version in this repository is new. It has breaking changes. Your tra
 | `package-lock.json` | Locked dependency versions. Commit it. |
 | `tsconfig.json` | TypeScript settings. The `@/*` alias points to the repository root. |
 | `eslint.config.mjs` | Lint rules |
+| `data/` | `places.json`: all regions, pins, places, and links |
+| `e2e/` | Playwright tests and the small web server for them |
+| `scripts/` | Helper scripts: `make_thumb.py` (thumbnails) and `gen-world-svg.mjs` (map) |
+| `public/thumbs/` | Thumbnails of places, and `CREDITS.md` |
+| `public/world.svg` | The world map image |
+| `.claude/skills/` | Skills for agents. `add-earth-link` adds a new place. |
 | `out/` | Build output. Git ignores it. Do not edit it. |
 
 ## 4. Commands
@@ -61,24 +263,13 @@ The Next.js version in this repository is new. It has breaking changes. Your tra
 | `npm run lint` | Run ESLint |
 | `npm run preview` | Build, then serve `out/` with `wrangler dev` |
 | `npm run deploy` | Deploy by hand with `wrangler deploy` |
+| `npm run test:e2e` | Build the site, then run the Playwright tests |
 
 Cloudflare runs `npm run build`. The `build.command` field in `wrangler.jsonc` sets this command. Do not remove that field.
 
 ## 5. How to start a new project from this template
 
-Do these steps in order.
-
-1. Choose a project name. Use lowercase letters, numbers, and hyphens.
-2. Set `name` in `wrangler.jsonc` to the project name.
-3. Set `name` in `package.json` to the project name.
-4. Update `title` and `description` in `app/layout.tsx`.
-5. Update `README.md` for the new project.
-6. Run `npm install`.
-7. Build the features that the user asks for. See sections 6 and 7.
-8. Do the checks in section 9.
-9. Commit and push. See section 10.
-
-The `name` in `wrangler.jsonc` must be the same as the Worker name in Cloudflare. If the names are different, the Cloudflare build fails. Tell the user the name that you chose.
+The initial setup of this project is already done. Do not repeat it.
 
 ## 6. What the static export can and cannot do
 
@@ -141,8 +332,9 @@ Do these checks in order. Fix each problem before you go to the next check.
 
 1. Run `npm run lint`. It must pass.
 2. Run `npm run build`. It must pass, and `out/index.html` must exist.
-3. Run `npx wrangler deploy --dry-run`. It must show that it read the files from the assets folder.
-4. Run `git status`. Make sure that no `out/`, `node_modules/`, `.env`, or `.wrangler/` files are staged.
+3. Run `npm run test:e2e`. It must pass.
+4. Run `npx wrangler deploy --dry-run`. It must show that it read the files from the assets folder.
+5. Run `git status`. Make sure that no `out/`, `node_modules/`, `.env`, or `.wrangler/` files are staged.
 
 Optional: run `npm run preview` and open the local address. This shows the site in the Workers runtime. If you cannot open a browser, skip this step.
 

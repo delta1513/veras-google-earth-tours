@@ -2,7 +2,7 @@
 
 > A simple world map for Vera, a stroke survivor who uses one hand and cannot read sentences. Each pin on the map opens big cards for saved places in that region. Each card opens the place in the Google Earth app.
 
-The site is a static Next.js page served by a Cloudflare Worker. It has one page: a world map with pins. Tapping a pin opens an overlay with a card for each place. A card is a plain link to a Google Earth URL, opened in the same tab. The UI has no sentences or labels on purpose, because Vera cannot read them. The main device is an iPad. The site address on workers.dev is not known yet.
+The site is a static Next.js page served by a Cloudflare Worker. It has one page: a world map with pins. Tapping a pin opens an overlay with a card for each place. A card is a plain link to a Google Earth URL, opened in the same tab. The UI has no sentences or labels on purpose, because Vera cannot read them. The main device is an iPad. The site address is https://veras-google-earth-tours.deltadelta.workers.dev/.
 
 ## Source
 

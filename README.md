@@ -11,6 +11,7 @@ npm install
 npm run dev      # local dev server
 npm run build    # static export to out/
 npm run lint
+npm run test:e2e  # build, then run the Playwright tests
 npm run preview  # build, then serve with wrangler dev
 ```
 
@@ -23,3 +24,7 @@ All pins and places are in `data/places.json`. Each region has an `id`, a fixed 
 ## Map
 
 `public/world.svg` is a flat world map made from Natural Earth data (public domain). It uses an equirectangular projection from longitude -180 to 180 and latitude 84 to -58. The bounds and the pin projection are in `app/map.ts`. If you change one, change the other.
+
+## Adding places
+
+A scheduled Claude routine adds one place from time to time. The steps are in `.claude/skills/add-earth-link/SKILL.md`. Thumbnail credits are in `public/thumbs/CREDITS.md`.

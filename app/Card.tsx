@@ -142,11 +142,11 @@ export function Flight({ x, y }: { x: number; y: number }) {
         const t = i / 18;
         const p = ease(t);
         const pt = at(p);
-        const s = 0.45 + 0.55 * Math.min(1, t * 4);
+        const s = 0.65 + 0.35 * Math.min(1, t * 4);
         return {
           offset: t,
           opacity: t < 0.05 ? t / 0.05 : 1,
-          transform: `translate(${pt.x - 44}px, ${pt.y - 27}px) rotate(${angle(p)}deg) scale(${s})`,
+          transform: `translate(${pt.x - 52}px, ${pt.y - 32}px) rotate(${angle(p)}deg) scale(${s})`,
         };
       });
       const a = planeEl.animate(frames, { duration: DUR, easing: "linear", fill: "both" });
@@ -166,7 +166,7 @@ export function Flight({ x, y }: { x: number; y: number }) {
           style={{ left: p.x, top: p.y, animationDelay: `${Math.round(p.t * DUR)}ms` }}
         />
       ))}
-      <svg ref={setPlaneEl as never} className="plane" viewBox="0 0 64 40" width="88" height="55" style={{ opacity: 0 }}>
+      <svg ref={setPlaneEl as never} className="plane" viewBox="0 0 64 40" width="104" height="65" style={{ opacity: 0 }}>
         <path d="M2 4 L62 20 L22 24 Z" fill="#ffffff" />
         <path d="M22 24 L62 20 L12 37 Z" fill="#cfe3f3" />
         <path d="M22 24 L30 33 L12 37 Z" fill="#9dc2e0" />

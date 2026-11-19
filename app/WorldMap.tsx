@@ -142,6 +142,7 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
   };
 
   const close = useCallback(() => {
+    if (busy.current) return; // mid take-off: stay put, the flight finishes
     playTick();
     setOpenId(null);
   }, []);

@@ -37,15 +37,15 @@ export function InkDefs() {
 function Stamp() {
   return (
     <svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true">
+      <circle cx="32" cy="32" r="27" fill="#fffaf0" opacity="0.93" />
       <g filter="url(#ink)" fill="none" stroke="#1d3f94" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="32" cy="32" r="29" strokeWidth="3" />
+        <circle cx="32" cy="32" r="29" strokeWidth="3.4" />
         <circle cx="32" cy="32" r="24" strokeWidth="1.6" />
-        <g strokeWidth="1.3" opacity="0.55">
+        <g strokeWidth="1.3" opacity="0.3">
           <ellipse cx="32" cy="32" rx="10" ry="19" />
           <path d="M13 32 H51 M16 22 H48 M16 42 H48" />
         </g>
-        <path d="M19 33 L28 42 L46 21" strokeWidth="7" stroke="#fffaf0" />
-        <path d="M19 33 L28 42 L46 21" strokeWidth="5" />
+        <path d="M18 33 L28 43 L47 20" strokeWidth="7" />
         <g fill="#1d3f94" stroke="none">
           <circle cx="32" cy="5.5" r="1.6" />
           <circle cx="32" cy="58.5" r="1.6" />
@@ -115,12 +115,12 @@ export function Card({
 
 const DUR = 540;
 const bez = (a: number, b: number, c: number, t: number) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c;
-const ease = (t: number) => Math.pow(t, 1.55);
+const ease = (t: number) => Math.pow(t, 1.35);
 
 export function Flight({ x, y }: { x: number; y: number }) {
   const vw = typeof window === "undefined" ? 1000 : window.innerWidth;
-  const P1 = { x: x + 70, y: y - 250 };
-  const P2 = { x: Math.min(x + 460, vw + 80), y: -110 };
+  const P1 = { x: x + 30, y: y + 330 };
+  const P2 = { x: vw + 120, y: y - 150 };
   const at = (p: number) => ({ x: bez(x, P1.x, P2.x, p), y: bez(y, P1.y, P2.y, p) });
   const angle = (p: number) => {
     const dx = 2 * (1 - p) * (P1.x - x) + 2 * p * (P2.x - P1.x);
@@ -146,7 +146,7 @@ export function Flight({ x, y }: { x: number; y: number }) {
         return {
           offset: t,
           opacity: t < 0.05 ? t / 0.05 : 1,
-          transform: `translate(${pt.x - 32}px, ${pt.y - 20}px) rotate(${angle(p)}deg) scale(${s})`,
+          transform: `translate(${pt.x - 44}px, ${pt.y - 27}px) rotate(${angle(p)}deg) scale(${s})`,
         };
       });
       const a = planeEl.animate(frames, { duration: DUR, easing: "linear", fill: "both" });
@@ -166,7 +166,7 @@ export function Flight({ x, y }: { x: number; y: number }) {
           style={{ left: p.x, top: p.y, animationDelay: `${Math.round(p.t * DUR)}ms` }}
         />
       ))}
-      <svg ref={setPlaneEl as never} className="plane" viewBox="0 0 64 40" width="64" height="40" style={{ opacity: 0 }}>
+      <svg ref={setPlaneEl as never} className="plane" viewBox="0 0 64 40" width="88" height="55" style={{ opacity: 0 }}>
         <path d="M2 4 L62 20 L22 24 Z" fill="#ffffff" />
         <path d="M22 24 L62 20 L12 37 Z" fill="#cfe3f3" />
         <path d="M22 24 L30 33 L12 37 Z" fill="#9dc2e0" />

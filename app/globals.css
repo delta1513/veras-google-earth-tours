@@ -519,14 +519,13 @@ a {
 
 .stamp {
   position: absolute;
-  right: -14px;
-  bottom: -14px;
-  width: 62px;
-  height: 62px;
+  right: -18px;
+  bottom: -16px;
+  width: 68px;
+  height: 68px;
   pointer-events: none;
   transform: rotate(-14deg);
-  opacity: 0.92;
-  mix-blend-mode: multiply;
+  filter: drop-shadow(0 2px 3px rgba(10, 25, 60, 0.35));
 }
 
 .stamp.thump {
@@ -538,6 +537,7 @@ a {
   inset: -6px;
   border-radius: 50%;
   border: 3px solid rgba(29, 63, 148, 0.45);
+  opacity: 0;
   animation: stamp-splat 560ms 640ms ease-out backwards;
 }
 

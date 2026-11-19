@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Card, Flight, InkDefs } from "./Card";
+import { createListStore, useListStore } from "./listStore";
+import { playPop, playTick, playWhoosh } from "./sound";
 import { MAP_ASPECT, MAP_HEIGHT, MAP_WIDTH, project } from "./map";
 import type { Region } from "./places";
 
@@ -55,21 +58,6 @@ function PinIcon() {
         strokeLinejoin="round"
       />
       <circle cx="20" cy="14.5" r="6" fill="#ffffff" />
-    </svg>
-  );
-}
-
-function ArrowIcon() {
-  return (
-    <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
-      <path
-        d="M8 24 H34 M23 11 L36 24 L23 37"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }
@@ -133,69 +121,75 @@ function Clouds() {
   );
 }
 
-const SEEN_KEY = "vera-seen-v1";
-const mem: { seen: string | null } = { seen: null }; // fallback when storage is unavailable
-const seenListeners = new Set<() => void>();
-function subscribeSeen(cb: () => void) {
-  seenListeners.add(cb);
-  return () => {
-    seenListeners.delete(cb);
-  };
-}
-function writeSeen(value: string) {
-  mem.seen = value;
-  try {
-    window.localStorage.setItem(SEEN_KEY, value);
-  } catch {
-    /* ignore */
-  }
-  seenListeners.forEach((l) => l());
-}
-function readSeen(): string {
-  if (mem.seen !== null) return mem.seen;
-  try {
-    return window.localStorage.getItem(SEEN_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
+const seenStore = createListStore("vera-seen-v1");
+const visitedStore = createListStore("vera-visited-v1");
+const stampedStore = createListStore("vera-stamped-v1"); // stamps that already did their thump
 
 export default function WorldMap({ regions }: { regions: Region[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const open = regions.find((r) => r.id === openId) ?? null;
-  // URLs Vera has already seen (raw JSON string; null until mounted, so no hydration mismatch).
-  const raw = useSyncExternalStore(subscribeSeen, readSeen, () => null);
-  const loaded = raw !== null;
-  const seen = useMemo(() => {
-    try {
-      const arr: unknown = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(arr)) return new Set(arr.filter((u): u is string => typeof u === "string"));
-    } catch {
-      /* ignore */
-    }
-    return new Set<string>();
-  }, [raw]);
+  const { loaded, set: seen, add: addSeen } = useListStore(seenStore);
+  const { set: visited, add: addVisited } = useListStore(visitedStore);
+  const { set: stamped, add: addStamped } = useListStore(stampedStore);
+  const [flight, setFlight] = useState<{ url: string; x: number; y: number } | null>(null);
+  const busy = useRef(false);
+  const timer = useRef<number | undefined>(undefined);
 
   const openRegion = (region: Region) => {
+    playPop();
     setOpenId(region.id);
-    if (region.places.every((p) => seen.has(p.url))) return;
-    const next = new Set(seen);
-    region.places.forEach((p) => next.add(p.url));
-    writeSeen(JSON.stringify([...next]));
+    addSeen(region.places.map((p) => p.url));
   };
+
+  const close = useCallback(() => {
+    playTick();
+    setOpenId(null);
+  }, []);
+
+  const takeOff = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault(); // the real href still works if this script never runs
+    if (busy.current) return;
+    busy.current = true;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const r = e.currentTarget.querySelector(".card-go")?.getBoundingClientRect();
+    if (!reduced) playWhoosh();
+    addVisited([url]);
+    setFlight({ url, x: r ? r.left + r.width / 2 : 0, y: r ? r.top + r.height / 2 : 0 });
+    timer.current = window.setTimeout(() => window.location.assign(url), reduced ? 150 : 560);
+  };
+
+  // Safari may restore this page from its back/forward cache with the animation frozen.
+  useEffect(() => {
+    const stop = () => window.clearTimeout(timer.current);
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      stop();
+      busy.current = false;
+      setFlight(null);
+    };
+    window.addEventListener("pageshow", onShow);
+    window.addEventListener("pagehide", stop);
+    return () => {
+      window.removeEventListener("pageshow", onShow);
+      window.removeEventListener("pagehide", stop);
+      stop();
+    };
+  }, []);
 
   useEffect(() => {
     if (!openId) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenId(null);
+      if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openId]);
+  }, [openId, close]);
 
   return (
     <main className="stage">
       <CloudDefs />
+      <InkDefs />
       <div
         className="map"
         data-testid="map"
@@ -254,33 +248,19 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
 
       {open && (
         <div className="overlay" data-testid="overlay" data-region={open.id}>
-          <div className="backdrop" data-testid="backdrop" onClick={() => setOpenId(null)} />
-          <div className="sheet" data-testid="sheet">
+          <div className="backdrop" data-testid="backdrop" onClick={close} />
+          <div className={`sheet${flight ? " flying" : ""}`} data-testid="sheet">
             {open.places.map((place, i) => (
-              <a
+              <Card
                 key={place.name}
-                className="card"
-                data-testid="card"
-                href={place.url}
-                style={{ "--n": Math.min(i, 5) } as React.CSSProperties}
-              >
-                {place.thumbnail ? (
-                  <Image
-                    className="thumb"
-                    src={place.thumbnail}
-                    alt=""
-                    width={96}
-                    height={96}
-                    unoptimized
-                  />
-                ) : (
-                  <span className="thumb placeholder" data-testid="placeholder" />
-                )}
-                <span className="card-name">{place.name}</span>
-                <span className="card-go">
-                  <ArrowIcon />
-                </span>
-              </a>
+                place={place}
+                n={Math.min(i, 5)}
+                visited={visited.has(place.url)}
+                stamped={stamped}
+                markStamped={addStamped}
+                going={flight?.url === place.url}
+                onGo={takeOff}
+              />
             ))}
           </div>
           <button
@@ -288,7 +268,7 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
             className="close"
             data-testid="close"
             aria-label="close"
-            onClick={() => setOpenId(null)}
+            onClick={close}
           >
             <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -300,6 +280,9 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
               />
             </svg>
           </button>
+          {flight && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && (
+            <Flight x={flight.x} y={flight.y} />
+          )}
         </div>
       )}
     </main>

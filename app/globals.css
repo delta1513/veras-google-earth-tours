@@ -507,3 +507,184 @@ a {
     animation-duration: 120ms;
   }
 }
+
+/* ---------- Feature 4: take-off, stamp ---------- */
+
+.thumb-wrap {
+  position: relative;
+  flex: none;
+  width: 96px;
+  height: 96px;
+}
+
+.stamp {
+  position: absolute;
+  right: -14px;
+  bottom: -14px;
+  width: 62px;
+  height: 62px;
+  pointer-events: none;
+  transform: rotate(-14deg);
+  opacity: 0.92;
+  mix-blend-mode: multiply;
+}
+
+.stamp.thump {
+  animation: stamp-thump 620ms 450ms cubic-bezier(0.3, 1.3, 0.5, 1) backwards;
+}
+
+.stamp-splat {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 3px solid rgba(29, 63, 148, 0.45);
+  animation: stamp-splat 560ms 640ms ease-out backwards;
+}
+
+@keyframes stamp-thump {
+  0% {
+    opacity: 0;
+    transform: rotate(10deg) scale(1.7);
+  }
+  55% {
+    opacity: 0.95;
+    transform: rotate(-18deg) scale(0.93);
+  }
+  100% {
+    transform: rotate(-14deg) scale(1);
+  }
+}
+
+@keyframes stamp-splat {
+  from {
+    opacity: 1;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+.card.going {
+  animation: card-takeoff 540ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
+.card.going .card-go {
+  animation: go-flash 540ms ease-out both;
+}
+
+.card.going .card-go svg {
+  animation: arrow-zip 540ms ease-in both;
+}
+
+.sheet.flying .card:not(.going) {
+  opacity: 0.6;
+  transition: opacity 200ms;
+}
+
+@keyframes card-takeoff {
+  0% {
+    transform: none;
+  }
+  22% {
+    transform: scale(0.95, 0.93);
+  }
+  55% {
+    transform: translateY(-7px) scale(1.02);
+  }
+  100% {
+    transform: translateY(-3px) scale(1.01);
+  }
+}
+
+@keyframes go-flash {
+  0% {
+    filter: none;
+  }
+  25% {
+    filter: brightness(1.45) saturate(1.15);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.55), 0 0 26px 10px rgba(120, 255, 160, 0.8);
+  }
+  100% {
+    filter: brightness(1.2);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 0 18px 4px rgba(120, 255, 160, 0.5);
+  }
+}
+
+@keyframes arrow-zip {
+  0%,
+  20% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(14px);
+    opacity: 0.25;
+  }
+}
+
+.flight {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.35));
+  will-change: transform;
+}
+
+.puff {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #ffffff;
+  opacity: 0;
+  animation: puff 520ms ease-out both;
+}
+
+.puff.big {
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes puff {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  20% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp.thump,
+  .stamp-splat,
+  .card.going,
+  .card.going .card-go svg {
+    animation: none;
+  }
+  .card.going .card-go {
+    animation: none;
+    filter: brightness(1.35);
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.6);
+  }
+  .stamp-splat {
+    display: none;
+  }
+}

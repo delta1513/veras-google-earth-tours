@@ -256,8 +256,14 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
         <div className="overlay" data-testid="overlay" data-region={open.id}>
           <div className="backdrop" data-testid="backdrop" onClick={() => setOpenId(null)} />
           <div className="sheet" data-testid="sheet">
-            {open.places.map((place) => (
-              <a key={place.name} className="card" data-testid="card" href={place.url}>
+            {open.places.map((place, i) => (
+              <a
+                key={place.name}
+                className="card"
+                data-testid="card"
+                href={place.url}
+                style={{ "--n": Math.min(i, 5) } as React.CSSProperties}
+              >
                 {place.thumbnail ? (
                   <Image
                     className="thumb"

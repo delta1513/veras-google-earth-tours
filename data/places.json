@@ -40,6 +40,18 @@
           "thumbnail": "/thumbs/calabria.jpg"
         }
       ]
+    },
+    {
+      "id": "britain-south",
+      "lat": 51.5,
+      "lng": -0.1,
+      "places": [
+        {
+          "name": "BigBen",
+          "url": "https://earth.google.com/web/@51.5007,-0.1245,20a,400d,35y,0h,60t,0r",
+          "thumbnail": "/thumbs/bigben.jpg"
+        }
+      ]
     }
   ]
 }

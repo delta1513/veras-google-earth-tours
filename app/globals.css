@@ -333,7 +333,9 @@ a {
   z-index: 10;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  /* The bottom strip stays free for the close button. */
+  padding: max(16px, env(safe-area-inset-top)) 24px calc(120px + env(safe-area-inset-bottom));
 }
 
 .backdrop {
@@ -343,86 +345,238 @@ a {
   animation: backdrop-in 220ms ease-out both;
 }
 
+/* The sheet is a travel table: contour-line map paper in a wooden atlas frame,
+   with brass studs in the corners and a stitched inner edge. */
 .sheet {
+  --paper: #fbf1d6;
   position: relative;
-  width: min(680px, 100% - 32px);
-  /* Leave the bottom strip free for the close button. */
-  max-height: calc(100dvh - 150px - env(safe-area-inset-bottom));
-  margin-top: max(16px, env(safe-area-inset-top));
-  padding: 16px;
+  box-sizing: border-box;
+  --cols: min(var(--count, 1), 2);
+  width: min(100%, calc(var(--cols) * 504px + (var(--cols) - 1) * 28px + 64px));
+  max-width: 100%;
+  max-height: 100%;
+  padding: 34px 32px;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 30px 28px;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  background: #fffaf0;
-  border-radius: 28px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 16px 16px, #fff1b8 0 2px, #c9962f 3px 6px, #6b4a14 7px 8px, transparent 9px) top left / 32px 32px no-repeat,
+    radial-gradient(circle at 16px 16px, #fff1b8 0 2px, #c9962f 3px 6px, #6b4a14 7px 8px, transparent 9px) top right / 32px 32px no-repeat,
+    radial-gradient(circle at 16px 16px, #fff1b8 0 2px, #c9962f 3px 6px, #6b4a14 7px 8px, transparent 9px) bottom left / 32px 32px no-repeat,
+    radial-gradient(circle at 16px 16px, #fff1b8 0 2px, #c9962f 3px 6px, #6b4a14 7px 8px, transparent 9px) bottom right / 32px 32px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='180' viewBox='0 0 260 180'%3E%3Cg fill='none' stroke='%23b58a4a' stroke-opacity='.22' stroke-width='1.6'%3E%3Cpath d='M-10 40C40 10 80 70 130 40S210 10 270 50'/%3E%3Cpath d='M-10 56C40 28 80 86 130 56S210 28 270 66'/%3E%3Cpath d='M-10 72C40 46 80 100 130 72S210 46 270 82'/%3E%3Cpath d='M-10 130C50 100 90 160 150 128S220 110 270 140'/%3E%3Cpath d='M-10 146C50 118 90 176 150 144S220 126 270 156'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .32 0 0 0 0 .15 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"),
+    var(--paper);
   box-shadow:
-    inset 0 0 0 3px #f1e2bd,
-    0 12px 40px rgba(0, 0, 0, 0.4);
-  animation: sheet-in 280ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+    inset 0 0 0 4px #fbf1d6,
+    inset 0 0 0 5px rgba(139, 94, 43, 0.55),
+    inset 0 0 40px 6px rgba(139, 94, 43, 0.28),
+    0 0 0 8px #8a5a2b,
+    0 0 0 11px #5d3a18,
+    0 0 0 12px #c79a5b,
+    0 18px 44px 8px rgba(0, 0, 0, 0.5);
+  animation: sheet-in 300ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
 }
 
+/* ---------- Postcard ---------- */
+
 .card {
-  flex: none;
+  --tilt: -1.4deg;
+  --dx: -40px;
+  position: relative;
+  flex: 0 1 504px;
+  min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 116px;
-  padding: 10px 14px 10px 10px;
-  border-radius: 20px;
-  border: 3px solid #1f6fd1;
-  background: #eaf3ff;
-  color: #0b1b33;
+  align-items: stretch;
+  gap: 14px;
+  min-height: 214px;
+  padding: 22px 20px 22px 22px;
+  color: #12233f;
   text-decoration: none;
-  animation: card-in 440ms cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
-  animation-delay: calc(90ms + var(--n, 0) * 80ms);
+  rotate: var(--tilt);
+  transition: rotate 160ms ease-out, scale 160ms ease-out;
+  /* Cream card stock with fibres, an airmail border and a soft inner rule. */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .36 0 0 0 0 .16 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #fffaf0 0%, #fbf0d6 100%);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 7px #fffaf0,
+    inset 0 0 0 9px rgba(31, 111, 209, 0.0),
+    0 1px 1px rgba(60, 35, 10, 0.35),
+    0 5px 9px rgba(60, 35, 10, 0.28),
+    0 14px 26px -4px rgba(40, 22, 6, 0.38);
+  animation: card-deal 620ms cubic-bezier(0.2, 0.85, 0.3, 1) backwards;
+  animation-delay: calc(120ms + var(--n, 0) * 140ms);
+}
+
+.card:nth-child(even) {
+  --tilt: 1.2deg;
+  --dx: 40px;
+}
+
+.card:nth-child(3n) {
+  --tilt: -0.6deg;
+}
+
+/* Airmail stripes frame the card. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  pointer-events: none;
+  padding: 7px;
+  background: repeating-linear-gradient(135deg, #2c78c4 0 12px, #fffaf0 12px 20px, #e8a92c 20px 32px, #fffaf0 32px 40px);
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.9;
 }
 
 .card:active {
-  background: #cfe4ff;
+  rotate: 0deg;
+  scale: 0.985;
+}
+
+.pc-left {
+  position: relative;
+  flex: none;
+  width: 196px;
+  align-self: center;
+}
+
+/* White photo border with a strip of tape. */
+.thumb-wrap {
+  position: relative;
+  display: block;
+  width: 196px;
+  height: 196px;
+  padding: 9px;
+  background: #ffffff;
+  border-radius: 3px;
+  rotate: calc(var(--tilt) * -0.8);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 3px 6px rgba(40, 25, 10, 0.35);
+}
+
+.thumb-wrap::after {
+  /* tape */
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 70px;
+  height: 22px;
+  margin-left: -35px;
+  rotate: -3deg;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0 3px, transparent 3px 7px),
+    rgba(240, 200, 100, 0.72);
+  clip-path: polygon(0 8%, 4% 0, 8% 10%, 12% 0, 100% 0, 96% 50%, 100% 100%, 88% 92%, 84% 100%, 0 100%, 4% 50%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .thumb {
-  flex: none;
-  width: 96px;
-  height: 96px;
-  border-radius: 16px;
-  object-fit: cover;
   display: block;
-  animation: thumb-in 380ms cubic-bezier(0.2, 0.9, 0.3, 1.3) backwards;
-  animation-delay: calc(190ms + var(--n, 0) * 80ms);
+  width: 178px;
+  height: 178px;
+  object-fit: cover;
+  animation: thumb-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
+  animation-delay: calc(380ms + var(--n, 0) * 140ms);
 }
 
 .placeholder {
   background: #b8bcc2;
 }
 
-.card-name {
+.pc-right {
+  position: relative;
   flex: 1;
   min-width: 0;
-  font-size: 34px;
-  line-height: 1.15;
-  font-weight: 800;
-  overflow-wrap: anywhere;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
 }
 
+.pc-stamp {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  width: 62px;
+  height: 74px;
+  rotate: 3deg;
+  filter: drop-shadow(0 2px 2px rgba(40, 25, 10, 0.3));
+  pointer-events: none;
+}
+
+.pc-mark {
+  position: absolute;
+  top: 4px;
+  right: 40px;
+  width: 128px;
+  height: 56px;
+  pointer-events: none;
+  opacity: 0.55;
+  rotate: -5deg;
+}
+
+.card-name {
+  position: relative;
+  display: block;
+  min-width: 0;
+  margin-top: 78px;
+  padding-bottom: 4px;
+  font-family: ui-rounded, "SF Pro Rounded", "Avenir Next Rounded", "Avenir Next", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 42px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: #12233f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  overflow-wrap: anywhere;
+  /* faint ruled address lines */
+  background: linear-gradient(transparent calc(100% - 3px), rgba(18, 35, 63, 0.18) 0) bottom / 100% 100% no-repeat;
+}
+
+/* Green glossy wax seal with the arrow. */
 .card-go {
+  position: relative;
+  align-self: flex-end;
   flex: none;
-  width: 72px;
-  height: 72px;
+  width: 92px;
+  height: 92px;
+  margin: 2px 0 -6px;
   border-radius: 50%;
-  background: #14a044;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 0 #0b6b2b;
-  animation: go-nudge 420ms ease-out backwards;
-  animation-delay: calc(400ms + var(--n, 0) * 80ms);
+  filter: drop-shadow(0 4px 3px rgba(5, 60, 25, 0.45));
+  animation: go-nudge 520ms ease-out backwards;
+  animation-delay: calc(700ms + var(--n, 0) * 140ms);
 }
 
-/* Close: bottom-left, reachable with the left hand. */
+.card-go > svg {
+  position: absolute;
+  inset: 0;
+}
+
+.card-go .arrow {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 1px rgba(0, 70, 25, 0.5));
+}
+
 .close {
   position: absolute;
   left: max(20px, env(safe-area-inset-left));
@@ -447,6 +601,45 @@ a {
   background: #a8151b;
 }
 
+/* Portrait: one big postcard per row. */
+@media (orientation: portrait) {
+  .sheet {
+    width: min(720px, 100%);
+    padding: 40px 30px;
+    gap: 32px;
+  }
+  .card {
+    flex: 1 1 100%;
+    min-height: 250px;
+    padding: 26px 26px 26px 28px;
+    gap: 20px;
+  }
+  .pc-left,
+  .thumb-wrap {
+    width: 226px;
+  }
+  .thumb-wrap {
+    height: 226px;
+    padding: 10px;
+  }
+  .thumb {
+    width: 206px;
+    height: 206px;
+  }
+  .card-name {
+    margin-top: 84px;
+    font-size: 46px;
+  }
+  .pc-stamp {
+    width: 70px;
+    height: 84px;
+  }
+  .pc-mark {
+    right: 48px;
+    width: 140px;
+  }
+}
+
 /* ---------- Overlay entrance (transform/opacity only) ---------- */
 
 @keyframes backdrop-in {
@@ -458,30 +651,46 @@ a {
 @keyframes sheet-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(22px) scale(0.98);
   }
 }
 
-@keyframes card-in {
-  from {
+/* Postcards are dealt onto the table: tossed in from above, they skid and settle. */
+@keyframes card-deal {
+  0% {
     opacity: 0;
-    transform: translate(18px, 26px);
+    transform: translate(var(--dx), -80px) scale(1.1);
+    rotate: calc(var(--tilt) + var(--dx) * 0.3);
+    animation-timing-function: cubic-bezier(0.25, 0.8, 0.35, 1);
+  }
+  15% {
+    opacity: 1;
+  }
+  72% {
+    transform: translate(0, 5px) scale(0.99);
+    rotate: calc(var(--tilt) - var(--dx) * 0.03);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+    rotate: var(--tilt);
   }
 }
 
 @keyframes thumb-in {
   from {
     opacity: 0;
-    transform: scale(0.86);
   }
 }
 
 @keyframes go-nudge {
   0% {
-    transform: translateX(-8px);
+    transform: scale(0.4) rotate(-40deg);
+    opacity: 0;
   }
   60% {
-    transform: translateX(3px);
+    transform: scale(1.12) rotate(6deg);
+    opacity: 1;
   }
   100% {
     transform: none;
@@ -503,29 +712,26 @@ a {
   .close {
     animation: none;
   }
+  .card {
+    transition: none;
+  }
   .backdrop {
     animation-duration: 120ms;
   }
 }
 
-/* ---------- Feature 4: take-off, stamp ---------- */
-
-.thumb-wrap {
-  position: relative;
-  flex: none;
-  width: 96px;
-  height: 96px;
-}
+/* ---------- Take-off and postmark ---------- */
 
 .stamp {
   position: absolute;
-  right: -18px;
-  bottom: -16px;
-  width: 68px;
-  height: 68px;
+  right: -22px;
+  bottom: -18px;
+  width: 100px;
+  height: 100px;
+  z-index: 2;
   pointer-events: none;
   transform: rotate(-14deg);
-  filter: drop-shadow(0 2px 3px rgba(10, 25, 60, 0.35));
+  filter: drop-shadow(0 2px 2px rgba(10, 25, 60, 0.3));
 }
 
 .stamp.thump {

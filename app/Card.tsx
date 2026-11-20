@@ -4,17 +4,88 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import type { Place } from "./places";
 
-function ArrowIcon() {
+function seal(): string {
+  const pts: string[] = [];
+  for (let i = 0; i <= 160; i++) {
+    const t = (i / 160) * Math.PI * 2;
+    const r = 45 + 3 * Math.cos(t * 16);
+    pts.push(`${i ? "L" : "M"}${(50 + r * Math.cos(t)).toFixed(2)} ${(50 + r * Math.sin(t)).toFixed(2)}`);
+  }
+  return pts.join("") + "Z";
+}
+const SEAL = seal();
+
+// Glossy green wax seal with a big white arrow.
+function GoSeal() {
   return (
-    <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
-      <path
-        d="M8 24 H34 M23 11 L36 24 L23 37"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <>
+      <svg viewBox="0 0 100 100" width="92" height="92" aria-hidden="true">
+        <path d={SEAL} fill="url(#seal-g)" />
+        <circle cx="50" cy="50" r="35" fill="none" stroke="#0a7a30" strokeWidth="2.5" opacity="0.55" />
+        <circle cx="50" cy="50" r="33" fill="none" stroke="#7df0a6" strokeWidth="1.5" opacity="0.55" />
+        <ellipse cx="38" cy="27" rx="20" ry="10" fill="#ffffff" opacity="0.38" transform="rotate(-28 38 27)" />
+      </svg>
+      <svg className="arrow" viewBox="0 0 48 48" width="50" height="50" aria-hidden="true">
+        <path
+          d="M8 24 H34 M23 11 L36 24 L23 37"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="7.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </>
+  );
+}
+
+// Decorative postage stamp: perforated edge, a little globe with a plane. No letters.
+function PostageStamp() {
+  const holes: React.ReactNode[] = [];
+  for (let i = 0; i < 6; i++) {
+    holes.push(<circle key={`t${i}`} cx={5 + i * 10} cy={1} r={2.6} />);
+    holes.push(<circle key={`b${i}`} cx={5 + i * 10} cy={75} r={2.6} />);
+  }
+  for (let i = 0; i < 7; i++) {
+    holes.push(<circle key={`l${i}`} cx={1} cy={5 + i * 10.5} r={2.6} />);
+    holes.push(<circle key={`r${i}`} cx={61} cy={5 + i * 10.5} r={2.6} />);
+  }
+  return (
+    <svg className="pc-stamp" viewBox="0 0 62 76" aria-hidden="true">
+      <defs>
+        <mask id="stamp-holes">
+          <rect width="62" height="76" fill="#fff" />
+          <g fill="#000">{holes}</g>
+        </mask>
+      </defs>
+      <g mask="url(#stamp-holes)">
+        <rect width="62" height="76" fill="#fffdf4" />
+        <rect x="6" y="6" width="50" height="64" fill="#2f86b8" />
+        <rect x="6" y="6" width="50" height="64" fill="none" stroke="#f3d27a" strokeWidth="1.5" />
+        <circle cx="31" cy="38" r="17" fill="#4fb0d8" />
+        <path d="M21 30 C26 26 31 30 28 36 C25 40 20 38 19 34 Z M34 42 C40 38 44 42 42 48 C38 52 33 50 34 42 Z" fill="#6fcf86" />
+        <ellipse cx="31" cy="38" rx="17" ry="6" fill="none" stroke="#fff" strokeWidth="0.8" opacity="0.6" />
+        <path d="M31 21 V55" stroke="#fff" strokeWidth="0.8" opacity="0.5" />
+        <path d="M10 22 C20 12 36 12 50 20" fill="none" stroke="#f3d27a" strokeWidth="1.4" strokeDasharray="2 2.5" />
+        <path d="M46 14 L54 20 L45 22 Z" fill="#fffdf4" />
+        <path d="M10 62 H52" stroke="#f3d27a" strokeWidth="1.5" />
+      </g>
+    </svg>
+  );
+}
+
+// Wavy cancellation lines with a ring, like a real postmark.
+function Postmark() {
+  return (
+    <svg className="pc-mark" viewBox="0 0 128 56" aria-hidden="true">
+      <g fill="none" stroke="#2a3f66" strokeWidth="2.4" strokeLinecap="round">
+        <circle cx="30" cy="28" r="23" />
+        <circle cx="30" cy="28" r="17" strokeWidth="1.4" />
+        <path d="M60 12 q8 -8 16 0 t16 0 t16 0 t16 0" />
+        <path d="M60 24 q8 -8 16 0 t16 0 t16 0 t16 0" />
+        <path d="M60 36 q8 -8 16 0 t16 0 t16 0 t16 0" />
+        <path d="M60 48 q8 -8 16 0 t16 0 t16 0 t16 0" />
+      </g>
     </svg>
   );
 }
@@ -28,6 +99,11 @@ export function InkDefs() {
           <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n" />
           <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" />
         </filter>
+        <radialGradient id="seal-g" cx="40%" cy="32%" r="75%">
+          <stop offset="0" stopColor="#5fe58f" />
+          <stop offset="0.55" stopColor="#1fb454" />
+          <stop offset="1" stopColor="#0b7f31" />
+        </radialGradient>
       </defs>
     </svg>
   );
@@ -90,12 +166,14 @@ export function Card({
       style={{ "--n": n } as React.CSSProperties}
       onClick={(e) => onGo(e, place.url)}
     >
-      <span className="thumb-wrap">
-        {place.thumbnail ? (
-          <Image className="thumb" src={place.thumbnail} alt="" width={96} height={96} unoptimized />
-        ) : (
-          <span className="thumb placeholder" data-testid="placeholder" />
-        )}
+      <span className="pc-left">
+        <span className="thumb-wrap">
+          {place.thumbnail ? (
+            <Image className="thumb" src={place.thumbnail} alt="" width={178} height={178} unoptimized />
+          ) : (
+            <span className="thumb placeholder" data-testid="placeholder" />
+          )}
+        </span>
         {show && (
           <span className={`stamp${thump ? " thump" : ""}`} aria-hidden="true">
             <Stamp />
@@ -103,9 +181,13 @@ export function Card({
           </span>
         )}
       </span>
-      <span className="card-name">{place.name}</span>
-      <span className="card-go">
-        <ArrowIcon />
+      <span className="pc-right">
+        <Postmark />
+        <PostageStamp />
+        <span className="card-name">{place.name}</span>
+        <span className="card-go">
+          <GoSeal />
+        </span>
       </span>
     </a>
   );

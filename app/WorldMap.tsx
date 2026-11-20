@@ -250,7 +250,11 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
       {open && (
         <div className="overlay" data-testid="overlay" data-region={open.id}>
           <div className="backdrop" data-testid="backdrop" onClick={close} />
-          <div className={`sheet${flight ? " flying" : ""}`} data-testid="sheet">
+          <div
+            className={`sheet${flight ? " flying" : ""}`}
+            data-testid="sheet"
+            style={{ "--count": open.places.length } as React.CSSProperties}
+          >
             {open.places.map((place, i) => (
               <Card
                 key={place.name}

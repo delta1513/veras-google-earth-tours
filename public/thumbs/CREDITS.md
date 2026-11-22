@@ -9,3 +9,4 @@ Photos from Wikimedia Commons, cropped to a 256x256 square and compressed.
 | skopje.jpg | https://commons.wikimedia.org/wiki/File:Stone_Bridge_Skopje_4.jpg | kallerna | CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0) |
 | calabria.jpg | https://commons.wikimedia.org/wiki/File:Tropea_-_Veduta_da_Via_Carmine_-_3.jpg | Benjamin Smith (Benjism89) | CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0) |
 | bigben.jpg | https://commons.wikimedia.org/wiki/File:Elizabeth_Tower_and_the_north_front_of_the_Palace_of_Westminster,_London.jpg | Christian David | CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0) |
+| machu-picchu.jpg | https://commons.wikimedia.org/wiki/File:Machu_Picchu,_Peru_(2210052373).jpg | Joe Ross | CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0) |

@@ -52,6 +52,18 @@
           "thumbnail": "/thumbs/bigben.jpg"
         }
       ]
+    },
+    {
+      "id": "peru-south",
+      "lat": -13.2,
+      "lng": -72.5,
+      "places": [
+        {
+          "name": "Machu Picchu",
+          "url": "https://earth.google.com/web/@-13.1631,-72.5450,2440a,1500d,35y,0h,60t,0r",
+          "thumbnail": "/thumbs/machu-picchu.jpg"
+        }
+      ]
     }
   ]
 }

@@ -183,7 +183,8 @@ These rules come from the rules above. Do not break them.
 - The UI has no text except the place names on the cards.
 - A pin has a touch area of at least 64 px (it is 72 px now).
 - A card is at least 96 px high. A card is one `<a>` element. It opens in the same tab. Do not add `target`.
-- The close button is big and red. It is at the bottom-left, so the left hand can reach it.
+- The close button is red and at least 56 px. It is on the top-left corner of the sheet, so the left hand can reach it.
+- A tap outside the sheet (on the backdrop) closes the sheet. A tap inside the sheet does not.
 - Do not add dialogs, alerts, or hidden controls.
 - Keep the test hooks. These are the `data-testid` values: `map`, `pin` (with `data-region`), `overlay`, `backdrop`, `sheet`, `card`, `placeholder`, `close`.
 

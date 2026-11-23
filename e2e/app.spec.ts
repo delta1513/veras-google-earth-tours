@@ -3,7 +3,7 @@ import { regions } from "./places";
 
 const MIN_PIN = 64; // px, pin touch target
 const MIN_CARD_HEIGHT = 96; // px
-const MIN_CLOSE = 72; // px
+const MIN_CLOSE = 56; // px
 
 async function insideViewport(page: Page, locator: ReturnType<Page["locator"]>) {
   const box = (await locator.boundingBox())!;
@@ -70,6 +70,10 @@ test("every region: overlay lists its places as plain links and closes (twice)",
       const box = await insideViewport(page, close);
       expect(box.width).toBeGreaterThanOrEqual(MIN_CLOSE);
       expect(box.height).toBeGreaterThanOrEqual(MIN_CLOSE);
+      // The close button sits on the top-left corner of the sheet.
+      const sheet = (await page.getByTestId("sheet").boundingBox())!;
+      expect(Math.abs(box.x + box.width / 2 - sheet.x)).toBeLessThanOrEqual(box.width);
+      expect(Math.abs(box.y + box.height / 2 - sheet.y)).toBeLessThanOrEqual(box.height);
       await close.tap();
       await expect(overlay).toHaveCount(0);
     }
@@ -101,12 +105,43 @@ test("thumbnails: loaded image when set, grey placeholder when null", async ({ p
   }
 });
 
-test("backdrop tap closes the overlay", async ({ page }) => {
-  await pin(page, regions[0].id).tap();
-  await expect(page.getByTestId("overlay")).toBeVisible();
-  // Tap the backdrop in the top-left corner, outside the sheet and close button.
-  await page.getByTestId("backdrop").tap({ position: { x: 4, y: 4 } });
-  await expect(page.getByTestId("overlay")).toHaveCount(0);
+const hitAt = (page: Page, x: number, y: number) =>
+  page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.getAttribute("data-testid"), [x, y]);
+
+test("tap outside the sheet closes it; tap inside does not", async ({ page }) => {
+  const vp = page.viewportSize()!;
+  const outside = [
+    { x: vp.width - 4, y: 4 }, // top-right corner
+    { x: 4, y: vp.height - 4 }, // bottom-left corner
+    { x: vp.width / 2, y: vp.height - 4 }, // bottom edge
+    { x: vp.width - 4, y: vp.height / 2 }, // right edge
+  ];
+  for (const pt of outside) {
+    await pin(page, regions[0].id).tap();
+    const overlay = page.getByTestId("overlay");
+    await expect(overlay).toBeVisible();
+
+    // Let the cards settle, then tap the sheet padding (not a card): it stays open.
+    await page.evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => Number.isFinite(a.effect?.getComputedTiming().endTime))
+          .map((a) => a.finished.catch(() => {})), // cancelled ones count as done
+      ),
+    );
+    const sheet = (await page.getByTestId("sheet").boundingBox())!;
+    const inside = { x: sheet.x + sheet.width / 2, y: sheet.y + 12 };
+    expect(await hitAt(page, inside.x, inside.y)).toBe("sheet");
+    await page.touchscreen.tap(inside.x, inside.y);
+    await expect(overlay).toBeVisible();
+
+    // Outside the sheet: it closes.
+    expect(await hitAt(page, pt.x, pt.y)).toBe("backdrop");
+    await page.touchscreen.tap(pt.x, pt.y);
+    await expect(overlay).toHaveCount(0);
+  }
+  await expect(page.getByTestId("map")).toBeVisible();
 });
 
 test("Vera rules: no dialogs, no console or page errors", async ({ page }) => {

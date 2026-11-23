@@ -250,41 +250,39 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
       {open && (
         <div className="overlay" data-testid="overlay" data-region={open.id}>
           <div className="backdrop" data-testid="backdrop" onClick={close} />
-          <div
-            className={`sheet${flight ? " flying" : ""}`}
-            data-testid="sheet"
-            style={{ "--count": open.places.length } as React.CSSProperties}
-          >
-            {open.places.map((place, i) => (
-              <Card
-                key={place.name}
-                place={place}
-                n={Math.min(i, 5)}
-                visited={visited.has(place.url)}
-                stamped={stamped}
-                markStamped={addStamped}
-                going={flight?.url === place.url}
-                onGo={takeOff}
-              />
-            ))}
+          <div className="sheet-wrap" style={{ "--count": open.places.length } as React.CSSProperties}>
+            <div className={`sheet${flight ? " flying" : ""}`} data-testid="sheet">
+              {open.places.map((place, i) => (
+                <Card
+                  key={place.name}
+                  place={place}
+                  n={Math.min(i, 5)}
+                  visited={visited.has(place.url)}
+                  stamped={stamped}
+                  markStamped={addStamped}
+                  going={flight?.url === place.url}
+                  onGo={takeOff}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              className="close"
+              data-testid="close"
+              aria-label="close"
+              onClick={close}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 5 L19 19 M19 5 L5 19"
+                  stroke="#ffffff"
+                  strokeWidth="4.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </svg>
+            </button>
           </div>
-          <button
-            type="button"
-            className="close"
-            data-testid="close"
-            aria-label="close"
-            onClick={close}
-          >
-            <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M5 5 L19 19 M19 5 L5 19"
-                stroke="#ffffff"
-                strokeWidth="4.5"
-                strokeLinecap="round"
-                fill="none"
-              />
-            </svg>
-          </button>
           {flight && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && (
             <Flight x={flight.x} y={flight.y} />
           )}

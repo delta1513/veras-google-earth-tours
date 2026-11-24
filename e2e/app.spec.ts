@@ -161,3 +161,41 @@ test("Vera rules: no dialogs, no console or page errors", async ({ page }) => {
   }
   expect(problems).toEqual([]);
 });
+
+test.describe("coming back from Google Earth", () => {
+  const launch = async (page: Page) => {
+    // Google Earth is an app on the iPad: here the navigation (204) leaves this page as it is.
+    await page.route("https://earth.google.com/**", (route) => route.fulfill({ status: 204 }));
+    await pin(page, regions[0].id).click();
+    await page.getByTestId("card").first().click();
+    await page.waitForTimeout(700); // take-off is over, the link was followed
+  };
+
+  test("pageshow (bfcache) returns to a clean map", async ({ page }) => {
+    await launch(page);
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+    await expect(page.getByTestId("overlay")).toHaveCount(0);
+    await expect(page.locator(".going")).toHaveCount(0);
+    await pin(page, regions[0].id).click();
+    await expect(page.getByTestId("sheet")).toBeVisible();
+    await page.getByTestId("close").click();
+    await expect(page.getByTestId("overlay")).toHaveCount(0);
+  });
+
+  test("visibilitychange back to visible returns to a clean map", async ({ page }) => {
+    await launch(page);
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByTestId("overlay")).toHaveCount(0);
+  });
+
+  test("close works even right after a tap, and a stuck take-off clears by itself", async ({ page }) => {
+    await launch(page);
+    await page.getByTestId("close").click();
+    await expect(page.getByTestId("overlay")).toHaveCount(0);
+    await pin(page, regions[0].id).click();
+    await page.getByTestId("card").first().click();
+    await page.waitForTimeout(3300);
+    await expect(page.locator(".going")).toHaveCount(0);
+    await expect(page.getByTestId("overlay")).toHaveCount(0);
+  });
+});

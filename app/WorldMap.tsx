@@ -134,6 +134,7 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
   const [flight, setFlight] = useState<{ url: string; x: number; y: number } | null>(null);
   const busy = useRef(false);
   const timer = useRef<number | undefined>(undefined);
+  const safety = useRef<number | undefined>(undefined);
 
   const openRegion = (region: Region) => {
     playPop();
@@ -141,8 +142,22 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
     addSeen(region.places.map((p) => p.url));
   };
 
+  // Back to a clean map: clear every take-off flag and timer, close the sheet.
+  const reset = useCallback(() => {
+    window.clearTimeout(timer.current);
+    window.clearTimeout(safety.current);
+    if (!busy.current) return;
+    busy.current = false;
+    setFlight(null);
+    setOpenId(null);
+  }, []);
+
   const close = useCallback(() => {
-    if (busy.current) return; // mid take-off: stay put, the flight finishes
+    // Close always works. If a take-off is stuck, cancel it too.
+    window.clearTimeout(timer.current);
+    window.clearTimeout(safety.current);
+    busy.current = false;
+    setFlight(null);
     playTick();
     setOpenId(null);
   }, []);
@@ -158,25 +173,29 @@ export default function WorldMap({ regions }: { regions: Region[] }) {
     addVisited([url]);
     setFlight({ url, x: r ? r.left + r.width / 2 : 0, y: r ? r.top + r.height / 2 : 0 });
     timer.current = window.setTimeout(() => window.location.assign(url), reduced ? 150 : 560);
+    // Safety net: a take-off never locks the page for long, even if no return event fires.
+    safety.current = window.setTimeout(() => reset(), 3000);
   };
 
-  // Safari may restore this page from its back/forward cache with the animation frozen.
+  // Google Earth opens as an app, so Safari may keep this page frozen mid-animation
+  // (back/forward cache, or just hidden). When it is shown again, start clean.
   useEffect(() => {
-    const stop = () => window.clearTimeout(timer.current);
-    const onShow = (e: PageTransitionEvent) => {
-      if (!e.persisted) return;
-      stop();
-      busy.current = false;
-      setFlight(null);
+    const onShow = () => reset();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reset();
     };
+    const onHide = () => window.clearTimeout(timer.current);
     window.addEventListener("pageshow", onShow);
-    window.addEventListener("pagehide", stop);
+    window.addEventListener("pagehide", onHide);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.removeEventListener("pageshow", onShow);
-      window.removeEventListener("pagehide", stop);
-      stop();
+      window.removeEventListener("pagehide", onHide);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.clearTimeout(timer.current);
+      window.clearTimeout(safety.current);
     };
-  }, []);
+  }, [reset]);
 
   useEffect(() => {
     if (!openId) return;

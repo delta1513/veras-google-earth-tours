@@ -173,7 +173,8 @@ npm init -y && npm install world-atlas topojson-client topojson-simplify d3-geo
 node gen-world-svg.mjs 50m 0.15    # writes world-50m-0.15.svg
 ```
 
-- The arguments are the data resolution (`50m` or `110m`) and the simplify quantile. The script writes the file into the folder where you run it. The script gives a different sea colour than the committed map (`#8fd0f0` against `#9bd4f2`). Check the result by eye before you replace `public/world.svg`. The sea colour must match the page background in `app/globals.css`.
+- The arguments are the data resolution (`50m` or `110m`) and the simplify quantile. The script writes the file into the folder where you run it. Check the result by eye before you replace `public/world.svg`.
+- The sea is not in `public/world.svg`. The `.map` element in `app/globals.css` draws the sea (a solid colour, a radial gradient, and a wave pattern). Then the sea stays blue on the iPad, even if Safari does not draw the SVG layer. The script draws a sea rect. Remove that rect from the new SVG before you commit it. Do not add a sea back into the SVG.
 - Do not regenerate the map unless it is necessary.
 
 ### UI rules for this app

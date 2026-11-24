@@ -199,3 +199,50 @@ test.describe("coming back from Google Earth", () => {
     await expect(page.getByTestId("overlay")).toHaveCount(0);
   });
 });
+
+// Regression: on iPad Safari the open ocean sometimes rendered black. The sea
+// must come from a solid colour on the map container, not only from the SVG.
+test("map: sea is blue, never black, even if the SVG layer is missing", async ({ page }) => {
+  const sampleOcean = async () => {
+    const box = (await page.getByTestId("map").boundingBox())!;
+    // Mid-Pacific, away from land, pins and clouds' fixed positions (clouds drift, so sample several rows).
+    const shot = await page.screenshot({
+      clip: { x: box.x + box.width * 0.03, y: box.y + box.height * 0.45, width: 4, height: 4 },
+    });
+    return shot;
+  };
+  const isBlue = async () => {
+    const png = await sampleOcean();
+    const b64 = png.toString("base64");
+    return page.evaluate(async (data) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${data}`;
+      await img.decode();
+      const c = document.createElement("canvas");
+      c.width = img.width;
+      c.height = img.height;
+      const ctx = c.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+      const [r, g, bl] = ctx.getImageData(1, 1, 1, 1).data;
+      return { r, g, b: bl };
+    }, b64);
+  };
+  const expectBlue = ({ r, g, b }: { r: number; g: number; b: number }) => {
+    expect(b).toBeGreaterThan(150);
+    expect(b).toBeGreaterThan(r + 40);
+    expect(g).toBeGreaterThan(r);
+  };
+
+  const bg = await page.getByTestId("map").evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bg).not.toBe("rgba(0, 0, 0, 0)");
+  expect(bg).not.toBe("rgb(0, 0, 0)");
+
+  expectBlue(await isBlue());
+  await page.reload();
+  await expect(page.getByTestId("map")).toBeVisible();
+  expectBlue(await isBlue());
+
+  // Simulate the SVG layer failing: sea must still be blue.
+  await page.getByTestId("map").locator("img.map-img").evaluate((el) => ((el as HTMLElement).style.display = "none"));
+  expectBlue(await isBlue());
+});
